@@ -1,0 +1,15 @@
+{
+  "name": "battle-with-friend-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Backend server for Battle With Friend game",
+  "main": "src/server.js",
+  "scripts": {},
+  "keywords": [
+    "game",
+    "websocket",
+    "real-time"
+  ],
+  "author": "",
+  "license": "MIT"
+}
