@@ -2,6 +2,9 @@ import express from 'express';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
 import errorHandler from './middleware/error-handler.js';
+import leaderboardRoutes from './routes/leaderboard.js';
+
+app.use('/api', leaderboardRoutes);
 
 dotenv.config();
 
