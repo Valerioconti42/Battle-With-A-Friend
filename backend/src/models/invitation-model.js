@@ -79,3 +79,9 @@ module.exports = {
   findUserByUsername,
   createInvitation,
 };
+
+
+const { createMatch } = require('./match-model');
+const { NotFoundError } = require('../errors/not-found-error');
+const { ValidationError } = require('../errors/validation-error');
+const { ConflictError } = require('../errors/conflict-error');
