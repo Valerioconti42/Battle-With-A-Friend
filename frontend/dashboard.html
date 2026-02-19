@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body>
+  <section>
+    <h2>Active Invitations</h2>
+    <div id="invitations-list"></div>
+  </section>
+
+  <button id="invite-btn">Invite Friend</button>
+
+  <form id="invite-form" style="display:none;">
+    <input type="text" id="invite-username" placeholder="Username" required />
+    <button type="submit">Send Invite</button>
+  </form>
+
+  <div id="message"></div>
+
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>
