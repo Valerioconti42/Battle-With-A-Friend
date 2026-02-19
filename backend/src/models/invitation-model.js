@@ -85,3 +85,88 @@ const { createMatch } = require('./match-model');
 const { NotFoundError } = require('../errors/not-found-error');
 const { ValidationError } = require('../errors/validation-error');
 const { ConflictError } = require('../errors/conflict-error');
+ 
+➕ Add findInvitationById
+async function findInvitationById(invitationId, conn = null) {
+  const client = conn || await pool.connect();
+
+  try {
+    const result = await client.query(
+      'SELECT * FROM invitations WHERE id = $1',
+      [invitationId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new NotFoundError('Invitation not found');
+    }
+
+    return result.rows[0];
+  } finally {
+    if (!conn) {
+      client.release();
+    }
+  }
+}
+➕ Add acceptInvitation (Transactional + Atomic)
+async function acceptInvitation(invitationId, inviteeId) {
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    const invitation = await findInvitationById(invitationId, client);
+
+    // Ownership check
+    if (invitation.invitee_id !== inviteeId) {
+      throw new ValidationError('You cannot accept this invitation');
+    }
+
+    // Prevent accepting own invitation
+    if (invitation.inviter_id === inviteeId) {
+      throw new ValidationError('You cannot accept your own invitation');
+    }
+
+    // Expiration check
+    if (new Date(invitation.expires_at) < new Date()) {
+      throw new ValidationError('Invitation has expired');
+    }
+
+    // Status check
+    if (invitation.status !== 'pending') {
+      throw new ConflictError('Invitation already processed');
+    }
+
+    // Update invitation
+    await client.query(
+      `
+      UPDATE invitations
+      SET status = 'accepted'
+      WHERE id = $1
+      `,
+      [invitationId]
+    );
+
+    // Create match (player1 = inviter, player2 = accepter)
+    const match = await createMatch(
+      invitation.inviter_id,
+      inviteeId,
+      client
+    );
+
+    await client.query('COMMIT');
+
+    return match;
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+➕ Export New Functions
+module.exports = {
+  findUserByUsername,
+  createInvitation,
+  findInvitationById,
+  acceptInvitation,
+};
