@@ -1,3 +1,28 @@
+import express from 'express';
+import dotenv from 'dotenv';
+import authRoutes from './routes/auth.js';
+import errorHandler from './middleware/error-handler.js';
+
+dotenv.config();
+
+const app = express();
+
+app.use(express.json());
+
+app.use('/api/auth', authRoutes);
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
 const matchesRoutes = require('./routes/matches');
 registrati 
   app.use('/api/matches', matchesRoutes);
@@ -15,3 +40,4 @@ app.use((err, req, res, next) => {
   });
 });
 
+export default app;
