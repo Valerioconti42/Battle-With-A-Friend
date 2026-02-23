@@ -56,3 +56,51 @@ export async function acceptInvitation(invitationId) {
   );
   return handleResponse(res);
 }
+
+// frontend/js/api/match-api.js
+
+const API_BASE_URL = '/api';
+
+function getAuthToken() {
+    return localStorage.getItem('token');
+}
+
+async function fetchWithRetry(url, options = {}, retries = 2) {
+    try {
+        const response = await fetch(url, options);
+
+        if (response.status === 401) {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        if (retries > 0) {
+            return fetchWithRetry(url, options, retries - 1);
+        }
+        throw error;
+    }
+}
+
+export async function getLeaderboard() {
+    const token = getAuthToken();
+
+    if (!token) {
+        window.location.href = '/login.html';
+        return;
+    }
+
+    return await fetchWithRetry(`${API_BASE_URL}/leaderboard`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        }
+    });
+}
