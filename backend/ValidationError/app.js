@@ -1,10 +1,13 @@
 import express from 'express';
 import dotenv from 'dotenv';
 
+// 1. Import your custom error class
+import { NotFoundError } from './errors.js'; 
+
 // Import all routes
 import authRouter from './routes/auth.js';
 import leaderboardRoutes from './routes/leaderboard.js';
-import matchesRoutes from './routes/matches.js'; // Converted from require()
+import matchesRoutes from './routes/matches.js'; 
 
 dotenv.config();
 
@@ -24,16 +27,15 @@ app.get('/health', (req, res) => {
 });
 
 // ─── 404 Not Found Handler ────────────────────────────────────────────────────
-// This catches requests to routes that don't exist and passes them to the error handler
 app.use((req, res, next) => {
-  const error = new Error('Route Not Found');
-  error.status = 404;
-  error.code = 'NOT_FOUND';
-  next(error);
+  // 2. Use your custom error class instead of manually building an object!
+  next(new NotFoundError('Route Not Found'));
 });
 
-// ─── Error handler ────────────────────────────────────────────────────────────
+// ─── Global Error Handler ─────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
+  // This seamlessly picks up the 'status', 'code', and 'details' 
+  // from the classes you defined in errors.js!
   const status = err.status || 500;
 
   res.status(status).json({
