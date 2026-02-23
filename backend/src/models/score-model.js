@@ -1,15 +1,6 @@
-// score-model.js
-// Handles score calculation and saving match results
+import pool from '../database/db.js';
 
-import pool from '../database/pool.js';
-
-/**
- * Get the total score of a player (sum of score_change)
- * @param {number} playerId
- * @param {object} [conn] optional database connection (for transactions)
- * @returns {Promise<number>}
- */
-export async function getPlayerTotalScore(playerId, conn) {
+export async function getPlayerTotalScore(playerId, conn = null) {
   const connection = conn || (await pool.getConnection());
   try {
     const [rows] = await connection.query(
@@ -22,15 +13,7 @@ export async function getPlayerTotalScore(playerId, conn) {
   }
 }
 
-/**
- * Save match results: create score records for winner (+10) and loser (-5)
- * @param {number} matchId
- * @param {number} winnerId
- * @param {number} loserId
- * @param {object} [conn] optional database connection (for transactions)
- * @returns {Promise<object>} saved score records
- */
-export async function saveMatchResults(matchId, winnerId, loserId, conn) {
+export async function saveMatchResults(matchId, winnerId, loserId, conn = null) {
   const connection = conn || (await pool.getConnection());
   let ownConnection = false;
   try {
@@ -39,7 +22,6 @@ export async function saveMatchResults(matchId, winnerId, loserId, conn) {
       await connection.query('START TRANSACTION');
     }
 
-    // Calculate previous total scores
     const winnerPrev = await getPlayerTotalScore(winnerId, connection);
     const loserPrev = await getPlayerTotalScore(loserId, connection);
 
@@ -49,11 +31,11 @@ export async function saveMatchResults(matchId, winnerId, loserId, conn) {
     const winnerNew = winnerPrev + winnerScoreChange;
     const loserNew = loserPrev + loserScoreChange;
 
-    // Insert score records
     await connection.query(
       'INSERT INTO scores (match_id, player_id, score, score_change) VALUES (?, ?, ?, ?)',
       [matchId, winnerId, winnerNew, winnerScoreChange]
     );
+    
     await connection.query(
       'INSERT INTO scores (match_id, player_id, score, score_change) VALUES (?, ?, ?, ?)',
       [matchId, loserId, loserNew, loserScoreChange]
@@ -69,6 +51,47 @@ export async function saveMatchResults(matchId, winnerId, loserId, conn) {
     if (ownConnection) await connection.query('ROLLBACK');
     throw err;
   } finally {
-    if (!conn) connection.release();
+    if (ownConnection) connection.release();
+  }
+}
+
+export async function getLeaderboard(currentUserId) {
+  const connection = await pool.getConnection();
+  try {
+    const [rows] = await connection.query(
+      `SELECT u.id AS user_id, u.username, COALESCE(SUM(s.score_change), 0) AS total_score
+       FROM users u
+       LEFT JOIN scores s ON u.id = s.player_id
+       GROUP BY u.id, u.username
+       ORDER BY total_score DESC, u.id ASC`
+    );
+
+    const leaderboard = [];
+    let rank = 1;
+    let prevScore = null;
+    let skippedRanks = 0;
+
+    rows.forEach((row) => {
+      if (prevScore !== null) {
+        if (row.total_score === prevScore) {
+          skippedRanks++;
+        } else {
+          rank += 1 + skippedRanks;
+          skippedRanks = 0;
+        }
+      }
+      prevScore = row.total_score;
+
+      leaderboard.push({
+        rank,
+        userId: row.user_id,
+        username: row.username,
+        totalScore: Number(row.total_score),
+      });
+    });
+
+    return leaderboard;
+  } finally {
+    connection.release();
   }
 }
