@@ -1,10 +1,9 @@
 -- 002_create_invitations_matches.sql
+-- Creates the invitations and matches tables
 
 SET FOREIGN_KEY_CHECKS = 0;
-
 DROP TABLE IF EXISTS matches;
 DROP TABLE IF EXISTS invitations;
-
 SET FOREIGN_KEY_CHECKS = 1;
 
 CREATE TABLE invitations (
@@ -16,14 +15,9 @@ CREATE TABLE invitations (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_invitations_inviter
-        FOREIGN KEY (inviter_id)
-        REFERENCES users(id)
-        ON DELETE CASCADE,
-
+        FOREIGN KEY (inviter_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_invitations_invitee
-        FOREIGN KEY (invitee_id)
-        REFERENCES users(id)
-        ON DELETE CASCADE,
+        FOREIGN KEY (invitee_id) REFERENCES users(id) ON DELETE CASCADE,
 
     INDEX idx_invitations_invitee_status (invitee_id, status),
     INDEX idx_invitations_expires_at (expires_at)
@@ -40,19 +34,11 @@ CREATE TABLE matches (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_matches_player1
-        FOREIGN KEY (player1_id)
-        REFERENCES users(id)
-        ON DELETE CASCADE,
-
+        FOREIGN KEY (player1_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_matches_player2
-        FOREIGN KEY (player2_id)
-        REFERENCES users(id)
-        ON DELETE CASCADE,
-
+        FOREIGN KEY (player2_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_matches_winner
-        FOREIGN KEY (winner_id)
-        REFERENCES users(id)
-        ON DELETE SET NULL,
+        FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL,
 
     INDEX idx_matches_status (status),
     INDEX idx_matches_player1 (player1_id),
