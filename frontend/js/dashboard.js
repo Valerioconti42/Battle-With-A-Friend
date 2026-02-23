@@ -87,3 +87,116 @@ pollId = setInterval(loadInvitations, POLLING_INTERVAL);
 window.addEventListener('beforeunload', () => {
   clearInterval(pollId);
 });
+// frontend/js/dashboard.js
+
+import { getLeaderboard } from './api/match-api.js';
+import {
+    renderLeaderboard,
+    showLeaderboardLoading,
+    showLeaderboardError
+} from './ui/leaderboard-ui.js';
+
+const leaderboardContainer = document.getElementById('leaderboard-container');
+
+let leaderboardInterval;
+
+function getCurrentUserId() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    return user ? user.id : null;
+}
+
+async function loadLeaderboard() {
+    try {
+        showLeaderboardLoading(leaderboardContainer);
+
+        const leaderboard = await getLeaderboard();
+        const currentUserId = getCurrentUserId();
+
+        renderLeaderboard(leaderboardContainer, leaderboard, currentUserId);
+    } catch (error) {
+        console.error('Failed to load leaderboard:', error);
+        showLeaderboardError(leaderboardContainer, 'Failed to load leaderboard.');
+    }
+}
+
+function startLeaderboardPolling() {
+    leaderboardInterval = setInterval(loadLeaderboard, 10000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadLeaderboard();
+    startLeaderboardPolling();
+});
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body>
+
+    <h1>Dashboard</h1>
+
+    <section class="leaderboard-section">
+        <h2>Global Leaderboard</h2>
+        <div id="leaderboard-container"></div>
+    </section>
+
+    <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+.leaderboard-section {
+    margin-top: 30px;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.leaderboard-table th {
+    background-color: #f4f4f4;
+}
+
+.leaderboard-table tr:hover {
+    background-color: #f9f9f9;
+}
+
+.leaderboard-row-current-user {
+    background-color: #e6f0ff;
+    font-weight: bold;
+}
+
+.leaderboard-loading,
+.leaderboard-error,
+.leaderboard-empty {
+    padding: 15px;
+    margin-top: 10px;
+}
+
+.leaderboard-error {
+    color: red;
+}
+
+@media (max-width: 600px) {
+    .leaderboard-table th,
+    .leaderboard-table td {
+        padding: 6px;
+        font-size: 14px;
+    }
+}
