@@ -1,172 +1,70 @@
-const pool = require('../config/db');
-const { ConflictError } = require('../errors/conflict-error');
-const { NotFoundError } = require('../errors/not-found-error');
+import pool from '../database/db.js';
+import { ConflictError, NotFoundError, ValidationError } from '../errors.js';
+import { createMatch } from './match-model.js'; // Import to create match on accept
 
-/**
- * Reuse user-model lookup
- */
-async function findUserByUsername(username) {
-  const result = await pool.query(
-    'SELECT id, username FROM users WHERE username = $1',
+export async function findUserByUsername(username) {
+  const [rows] = await pool.query(
+    'SELECT id, username FROM users WHERE username = ?',
     [username]
   );
 
-  if (result.rows.length === 0) {
+  if (rows.length === 0) {
     throw new NotFoundError('User not found');
   }
 
-  return result.rows[0];
+  return rows[0];
 }
 
-function mapInvitation(row) {
-  return {
-    id: row.id,
-    inviterId: row.inviter_id,
-    inviteeId: row.invitee_id,
-    status: row.status,
-    expiresAt: row.expires_at.toISOString(),
-    createdAt: row.created_at.toISOString(),
-  };
-}
-
-async function createInvitation(inviterId, inviteeId) {
-  const client = await pool.connect();
+export async function createInvitation(inviterId, inviteeId) {
+  const conn = await pool.getConnection();
 
   try {
-    await client.query('BEGIN');
+    await conn.query('START TRANSACTION');
 
-    // Check for existing pending invitation (bidirectional)
-    const existing = await client.query(
-      `
-      SELECT id FROM invitations
-      WHERE status = 'pending'
-      AND (
-        (inviter_id = $1 AND invitee_id = $2)
-        OR
-        (inviter_id = $2 AND invitee_id = $1)
-      )
-      `,
-      [inviterId, inviteeId]
+    const [existing] = await conn.query(
+      `SELECT id FROM invitations 
+       WHERE status = 'pending' 
+       AND ((inviter_id = ? AND invitee_id = ?) OR (inviter_id = ? AND invitee_id = ?))`,
+      [inviterId, inviteeId, inviteeId, inviterId]
     );
 
-    if (existing.rows.length > 0) {
-      throw new ConflictError('Pending invitation already exists');
+    if (existing.length > 0) {
+      throw new ConflictError('A pending invitation already exists between these users');
     }
 
-    const expiresAt = new Date(Date.now() + 3 * 60 * 1000);
+    // Set expiration (e.g., 24 hours from now)
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    const result = await client.query(
-      `
-      INSERT INTO invitations (inviter_id, invitee_id, status, expires_at)
-      VALUES ($1, $2, 'pending', $3)
-      RETURNING *
-      `,
+    const [result] = await conn.query(
+      `INSERT INTO invitations (inviter_id, invitee_id, status, expires_at) 
+       VALUES (?, ?, 'pending', ?)`,
       [inviterId, inviteeId, expiresAt]
     );
 
-    await client.query('COMMIT');
+    await conn.query('COMMIT');
 
-    return mapInvitation(result.rows[0]);
-  } catch (err) {
-    await client.query('ROLLBACK');
-    throw err;
-  } finally {
-    client.release();
-  }
-}
-
-module.exports = {
-  findUserByUsername,
-  createInvitation,
-};
-
-
-const { createMatch } = require('./match-model');
-const { NotFoundError } = require('../errors/not-found-error');
-const { ValidationError } = require('../errors/validation-error');
-const { ConflictError } = require('../errors/conflict-error');
- 
-➕ Add findInvitationById
-async function findInvitationById(invitationId, conn = null) {
-  const client = conn || await pool.connect();
-
-  try {
-    const result = await client.query(
-      'SELECT * FROM invitations WHERE id = $1',
-      [invitationId]
-    );
-
-    if (result.rows.length === 0) {
-      throw new NotFoundError('Invitation not found');
-    }
-
-    return result.rows[0];
-  } finally {
-    if (!conn) {
-      client.release();
-    }
-  }
-}
-➕ Add acceptInvitation (Transactional + Atomic)
-async function acceptInvitation(invitationId, inviteeId) {
-  const client = await pool.connect();
-
-  try {
-    await client.query('BEGIN');
-
-    const invitation = await findInvitationById(invitationId, client);
-
-    // Ownership check
-    if (invitation.invitee_id !== inviteeId) {
-      throw new ValidationError('You cannot accept this invitation');
-    }
-
-    // Prevent accepting own invitation
-    if (invitation.inviter_id === inviteeId) {
-      throw new ValidationError('You cannot accept your own invitation');
-    }
-
-    // Expiration check
-    if (new Date(invitation.expires_at) < new Date()) {
-      throw new ValidationError('Invitation has expired');
-    }
-
-    // Status check
-    if (invitation.status !== 'pending') {
-      throw new ConflictError('Invitation already processed');
-    }
-
-    // Update invitation
-    await client.query(
-      `
-      UPDATE invitations
-      SET status = 'accepted'
-      WHERE id = $1
-      `,
-      [invitationId]
-    );
-
-    // Create match (player1 = inviter, player2 = accepter)
-    const match = await createMatch(
-      invitation.inviter_id,
+    return {
+      id: result.insertId,
+      inviterId,
       inviteeId,
-      client
-    );
-
-    await client.query('COMMIT');
-
-    return match;
+      status: 'pending',
+      expiresAt: expiresAt.toISOString()
+    };
   } catch (err) {
-    await client.query('ROLLBACK');
+    await conn.query('ROLLBACK');
     throw err;
   } finally {
-    client.release();
+    conn.release();
   }
 }
-➕ Export New Functions
-module.exports = {
-  findUserByUsername,
-  createInvitation,
-  findInvitationById,
-  acceptInvitation,
-};
+
+export async function findActiveInvitationsByInvitee(inviteeId) {
+  const [rows] = await pool.query(
+    `SELECT i.id, i.inviter_id, i.status, i.created_at, u.username as inviter_username 
+     FROM invitations i 
+     JOIN users u ON i.inviter_id = u.id 
+     WHERE i.invitee_id = ? AND i.status = 'pending'`,
+    [inviteeId]
+  );
+  return rows;
+}
