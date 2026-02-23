@@ -2,7 +2,7 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import { body, validationResult } from 'express-validator';
 import { createUser } from '../models/user-model.js';
-import { ValidationError } from '../utils/errors.js';
+import { ValidationError } from '../errors.js'; // Updated path
 
 const router = express.Router();
 
@@ -32,9 +32,7 @@ router.post(
       }
 
       const { username, password } = req.body;
-
       const passwordHash = await bcrypt.hash(password, 10);
-
       const user = await createUser(username, passwordHash);
 
       return res.status(201).json(user);
