@@ -1,5 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import path from 'path'; // <-- 1. Import path
+import { fileURLToPath } from 'url'; // <-- 2. Import this to handle ES module directories
 
 // Import all routes
 import authRouter from './routes/auth.js';
@@ -13,13 +15,24 @@ dotenv.config();
 
 const app = express();
 
+// --- 3. Set up directory paths for ES modules ---
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // ─── Middleware ────────────────────────────────────────────────────────────────
 app.use(express.json());
+
+// --- 4. TELL EXPRESS TO SERVE YOUR FRONTEND ---
+// This assumes your frontend folder is outside the backend folder.
+// If your folder structure is different, we can adjust this path!
+app.use(express.static(path.join(__dirname, '../../frontend')));
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/auth', authRouter);
 app.use('/api', leaderboardRoutes); 
 app.use('/api/matches', matchesRoutes);
+
+// ... (KEEP THE REST OF YOUR FILE EXACTLY THE SAME FROM HERE DOWN) ...
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
