@@ -1,1 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Epic Duel | The Arena</title>
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
 
+    <h1>Welcome to the Arena</h1>
+    <p>A fast-paced, real-time 1v1 dueling game. Spin to win.</p>
+
+    <div class="button-container">
+        <a href="login.html" class="btn btn-login">Log In</a>
+        <a href="register.html" class="btn btn-register">Register</a>
+    </div>
+
+    <script>
+        if (localStorage.getItem('token')) {
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+</html>
