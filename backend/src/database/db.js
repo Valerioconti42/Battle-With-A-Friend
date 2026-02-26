@@ -12,7 +12,7 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME || '5DINF_T2_valerio.conti', // Replace with your actual default DB name
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
   ssl: {
         rejectUnauthorized: false
     }
