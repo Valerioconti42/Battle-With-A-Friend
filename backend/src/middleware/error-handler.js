@@ -1,4 +1,4 @@
-import { AppError } from '../errors.js'; // Import the base class!
+import { AppError } from '../utils/errors.js';
 
 export function errorHandler(err, req, res, next) {
   // 1. If it's one of our custom AppErrors, it has a built-in status and code!
