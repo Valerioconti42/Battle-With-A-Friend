@@ -1,4 +1,4 @@
-import pool from '../utils/database.js'; //
+import pool from '../database/db.js';
 import { ConflictError } from '../utils/errors.js'; //
 
 export async function createUser(username, passwordHash) {
