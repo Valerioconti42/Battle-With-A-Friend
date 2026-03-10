@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { AuthenticationError } from '../errors.js'; // Updated path
+import { AuthenticationError } from '../utils/errors.js';
 
 export function authenticate(req, res, next) {
   try {
