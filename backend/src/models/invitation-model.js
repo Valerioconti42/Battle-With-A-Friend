@@ -1,5 +1,5 @@
 import pool from '../database/db.js';
-import { ConflictError, NotFoundError, ValidationError } from '../errors.js';
+import { ConflictError, NotFoundError, ValidationError } from '../utils/errors.js';
 import { createMatch } from './match-model.js'; // Import to create match on accept
 
 export async function findUserByUsername(username) {
