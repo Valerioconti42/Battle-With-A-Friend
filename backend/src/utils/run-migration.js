@@ -11,7 +11,7 @@ if (!migrationName) {
 
 const migrationPath = path.join(
   process.cwd(),
-  'backend/database/migrations',
+  'backend/src/database/migrations',
   migrationName
 );
 
