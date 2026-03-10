@@ -27,6 +27,24 @@
       <canvas id="gameCanvas" width="800" height="600" style="background:#222; border: 4px solid #fff;"></canvas>
   </section>
 
+  <section id="invitations-section">
+    <h2>Active Invitations</h2>
+    <div id="invitations-list"></div>
+  </section>
+  
+  <button id="invite-btn">Invite Friend</button>
+  <form id="invite-form" style="display:none;">
+    <input type="text" id="invite-username" placeholder="Username" required>
+    <button type="submit">Send Invite</button>
+  </form>
+  
+  <div id="message"></div>
+  
+  <section id="leaderboard-section">
+    <h2>Global Leaderboard</h2>
+    <div id="leaderboard-container"></div>
+</section>
+
   <script src="/socket.io/socket.io.js"></script>
   
   <script type="module" src="js/game.js"></script>
