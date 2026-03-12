@@ -1,6 +1,3 @@
--- 002_create_invitations_matches.sql
--- Creates the invitations and matches tables
-
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS matches;
 DROP TABLE IF EXISTS invitations;
@@ -21,15 +18,13 @@ CREATE TABLE invitations (
 
     INDEX idx_invitations_invitee_status (invitee_id, status),
     INDEX idx_invitations_expires_at (expires_at)
-) ENGINE=InnoDB
-  DEFAULT CHARSET=utf8mb4
-  COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE matches (
     id INT AUTO_INCREMENT PRIMARY KEY,
     player1_id INT NOT NULL,
     player2_id INT NOT NULL,
-    status ENUM('pending', 'active', 'completed', 'cancelled') NOT NULL,
+    status ENUM('pending', 'active', 'completed', 'cancelled') NOT NULL DEFAULT 'pending',
     winner_id INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -42,7 +37,6 @@ CREATE TABLE matches (
 
     INDEX idx_matches_status (status),
     INDEX idx_matches_player1 (player1_id),
-    INDEX idx_matches_player2 (player2_id)
-) ENGINE=InnoDB
-  DEFAULT CHARSET=utf8mb4
-  COLLATE=utf8mb4_unicode_ci;
+    INDEX idx_matches_player2 (player2_id),
+    INDEX idx_matches_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

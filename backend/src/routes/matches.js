@@ -3,14 +3,11 @@ import { body, validationResult } from 'express-validator';
 import { authenticate } from '../middleware/auth.js';
 import { ValidationError } from '../errors.js';
 
-// Consolidating all model imports
 import { createInvitation, findUserByUsername, findActiveInvitationsByInvitee } from '../models/invitation-model.js';
 import { getMatchHistory, completeMatch } from '../models/match-model.js';
 import { saveMatchResults } from '../models/score-model.js';
 
-// Note: You will need to ensure this path matches your DB connection file
-import pool from '../database/db.js'; 
-
+import pool from '../utils/database.js';
 const router = express.Router();
 
 // ─── Invitations ──────────────────────────────────────────────────────────────
