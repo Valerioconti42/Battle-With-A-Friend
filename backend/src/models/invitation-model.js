@@ -1,4 +1,4 @@
-import pool from '../database/db.js';
+import pool from '../utils/database.js';
 import { ConflictError, NotFoundError, ValidationError } from '../utils/errors.js';
 import { createMatch } from './match-model.js'; // Import to create match on accept
 

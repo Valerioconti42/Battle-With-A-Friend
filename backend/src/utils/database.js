@@ -1,31 +1,31 @@
-import mysql from 'mysql2/promise';
+import mariadb from 'mariadb';
 import dotenv from 'dotenv';
 
-// Carica le variabili d'ambiente dal file .env (o db.env)
-dotenv.config({ path: '.env' }); // Se il file si chiama db.env, usa { path: 'db.env' }
+dotenv.config();
 
-// Crea il pool di connessioni
-const pool = mysql.createPool({
+const pool = mariadb.createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'game_db',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
+  connectionLimit: 5,
+  acquireTimeout: 10000,  // Add timeout for school network
+  connectTimeout: 10000
 });
 
-// Test della connessione all'avvio
+// Test the connection
 (async () => {
+  let conn;
   try {
-    const connection = await pool.getConnection();
-    console.log('✅ Connessione al database riuscita!');
-    connection.release();
-  } catch (error) {
-    console.error('❌ Connessione al database fallita:');
-    console.error(error.message);
-    process.exit(1); // Esce dal processo se non può connettersi al DB
+    conn = await pool.getConnection();
+    console.log('✅ Successfully connected to MariaDB!');
+    console.log(`   Database: ${process.env.DB_NAME} on ${process.env.DB_HOST}`);
+  } catch (err) {
+    console.error('❌ MariaDB connection failed:');
+    console.error(`   Error: ${err.message}`);
+    console.error('   Check your credentials in the .env file');
+  } finally {
+    if (conn) conn.release();
   }
 })();
 

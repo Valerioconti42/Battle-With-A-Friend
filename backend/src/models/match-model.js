@@ -1,4 +1,4 @@
-import pool from '../database/db.js';
+import pool from '../utils/database.js';
 
 export async function createMatch(player1Id, player2Id, conn = null) {
   const connection = conn || await pool.getConnection();
