@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
-    "mariadb": "^3.5.1",
+    "mariadb": "^3.5.2",
     "nodemon": "^3.1.14",
     "supertest": "^6.3.4"
   },
