@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login | Epic Duel</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <h2>Log In</h2>
+        <div id="error-message"></div>
+        
+        <form id="login-form">
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="password" required>
+            </div>
+            <button type="submit" class="btn-submit">Log In</button>
+        </form>
+        
+        <a href="register.html" class="auth-link">Don't have an account? Register</a>
+    </div>
+
+    <script type="module" src="php/api/login.php"></script>
+</body>
+</html>
