@@ -9,17 +9,12 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const migrationName = process.argv[2];
+// Prende tutti gli argomenti dopo lo script (i nomi dei file di migrazione)
+const migrationNames = process.argv.slice(2);
 
-if (!migrationName) {
-  console.error('❌ Please provide a migration file name');
-  process.exit(1);
-}
-
-const migrationPath = path.join(__dirname, 'migrations', migrationName);
-
-if (!fs.existsSync(migrationPath)) {
-  console.error(`❌ Migration not found: ${migrationName}`);
+if (migrationNames.length === 0) {
+  console.error('❌ Devi specificare almeno un file di migrazione');
+  console.log('Esempio: node migrate.js 001_create_users.sql 002_add_indexes.sql');
   process.exit(1);
 }
 
@@ -34,12 +29,23 @@ if (!fs.existsSync(migrationPath)) {
   });
 
   try {
-    const sql = fs.readFileSync(migrationPath, 'utf8');
-    console.log(`🚀 Running migration: ${migrationName}`);
-    await connection.query(sql);
-    console.log('✅ Migration completed successfully');
+    for (const migrationName of migrationNames) {
+      const migrationPath = path.join(__dirname, 'migrations', migrationName);
+
+      if (!fs.existsSync(migrationPath)) {
+        console.error(`❌ Migrazione non trovata: ${migrationName}`);
+        process.exit(1);
+      }
+
+      const sql = fs.readFileSync(migrationPath, 'utf8');
+      console.log(`🚀 Esecuzione migrazione: ${migrationName}`);
+      await connection.query(sql);
+      console.log(`✅ Migrazione completata: ${migrationName}`);
+    }
+
+    console.log('🎉 Tutte le migrazioni sono state eseguite con successo');
   } catch (err) {
-    console.error('❌ Migration failed:', err);
+    console.error('❌ Migrazione fallita:', err);
     process.exit(1);
   } finally {
     await connection.end();
