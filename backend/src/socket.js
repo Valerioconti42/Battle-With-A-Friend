@@ -13,13 +13,12 @@ export function initGameServer(httpServer) {
         console.log('🎮 A player connected:', socket.id);
 
         // 1. Put the player in a match
-        socket.on('join_match', (matchId) => {
+        socket.on('join_match', ({ matchId, userId }) => {
             socket.join(matchId);
             
             if (!rooms[matchId]) {
-                // First player to join becomes Player 1 (Blue, on the left)
                 rooms[matchId] = {
-                    p1: { id: socket.id, angle: 0, x: 200, y: 300 },
+                    p1: { id: socket.id, dbUserId: userId, angle: 0, x: 200, y: 300 },
                     p2: null,
                     status: 'waiting'
                 };
