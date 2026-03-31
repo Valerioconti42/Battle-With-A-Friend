@@ -4,7 +4,7 @@ import { authenticate } from '../middleware/auth.js';
 import { ValidationError, NotFoundError } from '../errors.js';
 
 import { createInvitation, findUserByUsername, findActiveInvitationsByInvitee } from '../models/invitation-model.js';
-import { getMatchHistory, completeMatch } from '../models/match-model.js';
+import { getMatchHistory, completeMatch, createMatch } from '../models/match-model.js';
 import { saveMatchResults } from '../models/score-model.js';
 
 import pool from '../utils/database.js';
