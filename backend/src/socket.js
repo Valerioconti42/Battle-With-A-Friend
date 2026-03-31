@@ -57,14 +57,15 @@ export function initGameServer(httpServer) {
             const p2NormalizedAngle = ((room.p2.angle % 360) + 360) % 360;
 
             // If Player 1 is aiming within 5 degrees of Player 2
-            if (room.p1.id === socket.id && Math.abs(p1NormalizedAngle - targetAngleP1toP2) < 5) {
+           if (room.p1.id === socket.id && Math.abs(p1NormalizedAngle - targetAngleP1toP2) < 5) {
                 io.to(matchId).emit('game_over', { winner: room.p1.id });
                 room.status = 'finished';
+                handleVictory(matchId, room.p1.dbUserId, room.p2.dbUserId).catch(console.error);
             } 
-            // If Player 2 is aiming within 5 degrees of Player 1
             else if (room.p2.id === socket.id && Math.abs(p2NormalizedAngle - targetAngleP2toP1) < 5) {
                 io.to(matchId).emit('game_over', { winner: room.p2.id });
                 room.status = 'finished';
+                handleVictory(matchId, room.p2.dbUserId, room.p1.dbUserId).catch(console.error);
             }
 
             // 4. Send the new positions to both players so their screens update
