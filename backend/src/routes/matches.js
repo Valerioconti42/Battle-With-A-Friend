@@ -1,7 +1,7 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
 import { authenticate } from '../middleware/auth.js';
-import { ValidationError, NotFoundError } from '../errors.js';
+import { ValidationError, NotFoundError } from '../utils/errors.js';
 
 import { createInvitation, findUserByUsername, findActiveInvitationsByInvitee } from '../models/invitation-model.js';
 import { getMatchHistory, completeMatch, createMatch } from '../models/match-model.js';
