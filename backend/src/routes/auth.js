@@ -78,7 +78,7 @@ router.post(
 
       // 3. Issue Token
       const token = jwt.sign(
-        { userId: user.id, username: user.username },
+        { id: user.id, username: user.username },
         process.env.JWT_SECRET || 'super_secret_school_key', 
         { expiresIn: '24h' }
       );
