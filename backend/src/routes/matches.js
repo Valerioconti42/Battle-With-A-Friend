@@ -75,13 +75,22 @@ router.post('/:id/forfeit', authenticate, async (req, res, next) => {
   
   let connection;
   try {
-    // Note: ensure getOpponentId is properly imported or defined in match-model.js
-    // const winnerId = await getOpponentId(matchId, forfeitingPlayerId); 
-    
     connection = await pool.getConnection();
     await connection.query('START TRANSACTION');
 
-    // Assuming winnerId is resolved above
+    const [matchRows] = await connection.query(
+      'SELECT * FROM matches WHERE id = ? AND status = "active"',
+      [matchId]
+    );
+    if (matchRows.length === 0) throw new NotFoundError('Match not found or not active');
+
+    const match = matchRows[0];
+    if (match.player1_id !== forfeitingPlayerId && match.player2_id !== forfeitingPlayerId) {
+      throw new NotFoundError('You are not part of this match');
+    }
+
+    const winnerId = match.player1_id === forfeitingPlayerId ? match.player2_id : match.player1_id;
+
     await completeMatch(matchId, winnerId, connection);
     await saveMatchResults(matchId, winnerId, forfeitingPlayerId, connection);
 
