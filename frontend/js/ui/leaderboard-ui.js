@@ -48,7 +48,7 @@ export function renderLeaderboard(container, leaderboard, currentUserId) {
         }
 
         tr.innerHTML = `
-            <td>${index + 1}</td>
+            <td>${entry.rank}</td>
             <td>${entry.username}</td>
             <td>${entry.totalScore}</td>
         `;
