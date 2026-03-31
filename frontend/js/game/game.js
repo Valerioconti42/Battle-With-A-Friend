@@ -9,11 +9,12 @@ const ctx = canvas.getContext('2d');
 
 let myId = null;
 let gameState = null;
-let currentMatchId = 'school-lab-match'; // Hardcoded match name for testing
+const params = new URLSearchParams(window.location.search);
+let currentMatchId = params.get('id');// Hardcoded match name for testing
 
 // Tell the server we want to play!
-socket.emit('join_match', currentMatchId);
-
+const user = JSON.parse(localStorage.getItem('user') || '{}');
+socket.emit('join_match', { matchId: currentMatchId, userId: user.id });
 // --- SOCKET LISTENERS (Listening to the Referee) ---
 
 socket.on('game_start', (state) => {
@@ -36,8 +37,8 @@ socket.on('game_over', ({ winner }) => {
         alert("💀 YOU LOSE! You got hit.");
     }
     // Reset the match so you can play again
-    socket.emit('join_match', currentMatchId); 
-});
+const user = JSON.parse(localStorage.getItem('user') || '{}');
+socket.emit('join_match', { matchId: currentMatchId, userId: user.id });});
 
 // --- CONTROLS (Your Controller) ---
 
