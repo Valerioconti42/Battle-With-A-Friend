@@ -1,106 +1,49 @@
-import { fetchWithTimeout } from '../utils/fetch-utils.js';
 import { getToken } from '../utils/token-storage.js';
 
-const API_BASE_URL = '/api/matches';
+const API_BASE = '/api';
 
 function authHeaders() {
-  const token = getToken();
   return {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`
+    'Authorization': `Bearer ${getToken()}`
   };
 }
 
 async function handleResponse(res) {
   let data;
-  try {
-    data = await res.json();
-  } catch {
-    throw new Error('Invalid server response');
+  try { data = await res.json(); } catch { throw new Error('Invalid server response'); }
+  if (res.status === 401) {
+    localStorage.removeItem('token');
+    window.location.href = '/login.html';
+    return;
   }
-
-  if (!res.ok) {
-    throw new Error(data?.error?.message || 'Operation failed');
-  }
-
+  if (!res.ok) throw new Error(data?.error?.message || 'Operation failed');
   return data;
 }
 
 export async function getActiveInvitations() {
-  const res = await fetchWithTimeout(
-    `${API_BASE_URL}/invites/active`,
-    { headers: authHeaders() }
-  );
+  const res = await fetch(`${API_BASE}/matches/invites/active`, { headers: authHeaders() });
   return handleResponse(res);
 }
 
 export async function createInvitation(username) {
-  const res = await fetchWithTimeout(
-    `${API_BASE_URL}/invite`,
-    {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify({ username })
-    }
-  );
+  const res = await fetch(`${API_BASE}/matches/invite`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ username })
+  });
   return handleResponse(res);
 }
 
 export async function acceptInvitation(invitationId) {
-  const res = await fetchWithTimeout(
-    `${API_BASE_URL}/invites/${invitationId}/accept`,
-    {
-      method: 'POST',
-      headers: authHeaders()
-    }
-  );
+  const res = await fetch(`${API_BASE}/matches/invites/${invitationId}/accept`, {
+    method: 'POST',
+    headers: authHeaders()
+  });
   return handleResponse(res);
 }
 
-// frontend/js/api/match-api.js
-
-const API_BASE_URL = '/api';
-
-function getAuthToken() {
-    return localStorage.getItem('token');
-}
-
-async function fetchWithRetry(url, options = {}, retries = 2) {
-    try {
-        const response = await fetch(url, options);
-
-        if (response.status === 401) {
-            localStorage.removeItem('token');
-            window.location.href = '/login.html';
-            return;
-        }
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        if (retries > 0) {
-            return fetchWithRetry(url, options, retries - 1);
-        }
-        throw error;
-    }
-}
-
 export async function getLeaderboard() {
-    const token = getAuthToken();
-
-    if (!token) {
-        window.location.href = '/login.html';
-        return;
-    }
-
-    return await fetchWithRetry(`${API_BASE_URL}/leaderboard`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    });
+  const res = await fetch(`${API_BASE}/leaderboard`, { headers: authHeaders() });
+  return handleResponse(res);
 }
