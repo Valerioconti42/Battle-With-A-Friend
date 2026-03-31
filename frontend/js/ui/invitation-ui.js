@@ -16,8 +16,8 @@ export function renderInvitationItem(invite) {
   item.className = 'invitation-item';
 
   const user = document.createElement('div');
-  user.textContent = `From: ${invite.inviterUsername}`;
-
+  user.textContent = `From: ${invite.inviter_username || invite.inviterUsername}`;
+  
   const time = document.createElement('div');
   time.textContent = formatRemainingTime(invite.expiresAt);
 
