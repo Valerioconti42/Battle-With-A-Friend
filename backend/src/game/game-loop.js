@@ -2,7 +2,7 @@ import pool from '../utils/database.js';
 import { saveMatchResults } from '../models/score-model.js';
 import { completeMatch } from '../models/match-model.js';
 
-async function handleVictory(matchId, winnerId, loserId) {
+export async function handleVictory(matchId, winnerId, loserId) {
   const connection = await pool.getConnection();
   try {
     await connection.query('START TRANSACTION');
