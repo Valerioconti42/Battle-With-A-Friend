@@ -1,3 +1,4 @@
+import pool from '../utils/database.js';
 import { saveMatchResults } from '../models/score-model.js';
 import { completeMatch } from '../models/match-model.js';
 
