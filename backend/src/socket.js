@@ -1,4 +1,5 @@
 import { Server } from 'socket.io';
+import { handleVictory } from './game/game-loop.js';
 
 export function initGameServer(httpServer) {
     // Set up Socket.io and allow your local network to connect
@@ -25,7 +26,7 @@ export function initGameServer(httpServer) {
                 console.log(`Player 1 joined match ${matchId}`);
             } else {
                 // Second player becomes Player 2 (Red, on the right)
-                rooms[matchId].p2 = { id: socket.id, angle: 180, x: 600, y: 300 };
+                rooms[matchId].p2 = { id: socket.id, dbUserId: userId, angle: 180, x: 600, y: 300 };
                 rooms[matchId].status = 'playing';
                 console.log(`Player 2 joined! Match ${matchId} starting.`);
                 
